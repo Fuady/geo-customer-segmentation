@@ -1,0 +1,48 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.eggs/
+*.so
+
+# Virtual env
+venv/
+.venv/
+.env
+
+# Data (regenerate with make pipeline)
+data/raw/
+data/processed/
+data/external/
+data/models/
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+!data/external/.gitkeep
+!data/models/.gitkeep
+
+# MLflow
+mlruns/
+mlflow.db
+
+# Airflow
+logs/
+airflow.db
+
+# IDE
+.vscode/
+.idea/
+.DS_Store
+
+# Test/coverage
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Generated docs
+docs/eda_*.png
+docs/cluster_*.png
+docs/feat_*.png
+docs/profile_*.png
+docs/*.html
