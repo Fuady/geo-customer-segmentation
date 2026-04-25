@@ -1,0 +1,67 @@
+# ─────────────────────────────────────────────────────────────
+# configs/segment_params.yaml  —  Clustering hyperparameters
+# ─────────────────────────────────────────────────────────────
+
+kmeans:
+  n_clusters: 7            # overridden by Optuna when --tune used
+  init: "k-means++"
+  n_init: 20               # number of random initialisations
+  max_iter: 500
+  random_state: 42
+  algorithm: "lloyd"
+
+dbscan:
+  eps: 0.5                 # neighbourhood radius (in scaled feature space)
+  min_samples: 30          # min points to form a dense region
+  metric: "euclidean"
+  n_jobs: -1
+
+hdbscan:
+  min_cluster_size: 50
+  min_samples: 10
+  cluster_selection_epsilon: 0.3
+  metric: "euclidean"
+  cluster_selection_method: "eom"   # eom | leaf
+  prediction_data: true             # enables soft clustering (confidence scores)
+
+optuna:
+  n_trials: 40
+  timeout_seconds: 600
+  direction: "maximize"           # maximise silhouette score
+  metric: "silhouette"
+  search_space:
+    n_clusters: [5, 12]           # KMeans cluster count range
+
+# Features to use for clustering (subset of all engineered features)
+# Ordered by domain importance
+clustering_features:
+  mobility:
+    - avg_daily_distance_km
+    - travel_radius_km
+    - home_work_distance_km
+    - n_frequent_locations
+    - pct_time_at_home
+    - pct_time_at_work
+    - mobility_entropy
+  usage_volume:
+    - data_usage_gb
+    - call_minutes_monthly
+    - sms_monthly
+    - roaming_days_monthly
+  usage_temporal:
+    - morning_data_ratio
+    - afternoon_data_ratio
+    - evening_data_ratio
+    - night_data_ratio
+    - weekend_data_ratio
+    - peak_hour_data_ratio
+  poi_affinity:
+    - poi_office_score
+    - poi_transit_score
+    - poi_mall_score
+    - poi_residential_score
+    - poi_entertainment_score
+  network:
+    - home_zone_rsrq
+    - work_zone_rsrq
+    - avg_throughput_mbps

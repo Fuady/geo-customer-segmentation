@@ -1,0 +1,108 @@
+# ─────────────────────────────────────────────────────────────
+# configs/config.yaml  —  Main project configuration
+# ─────────────────────────────────────────────────────────────
+
+project:
+  name: "geo-customer-segmentation"
+  version: "1.0.0"
+  description: "Location-based customer segmentation for targeted marketing"
+
+paths:
+  raw_data:       "data/raw"
+  processed_data: "data/processed"
+  external_data:  "data/external"
+  models:         "data/models"
+  logs:           "logs"
+
+data_generation:
+  n_subscribers: 30000
+  random_seed:   42
+  # Jakarta metropolitan area bounding box
+  geo_bounds:
+    lat_min: -6.50
+    lat_max: -5.90
+    lon_min: 106.60
+    lon_max: 107.10
+  # H3 resolution for home/work zone assignment
+  h3_resolution: 8       # ~0.74 km² — city-block level
+
+features:
+  subscriber_id_column: "subscriber_id"
+  h3_resolution:         8
+  # Temporal buckets for usage analysis
+  time_buckets:
+    morning:   [6,  12]   # 06:00–12:00
+    afternoon: [12, 18]   # 12:00–18:00
+    evening:   [18, 22]   # 18:00–22:00
+    night:     [22, 6]    # 22:00–06:00
+
+segmentation:
+  n_segments_range: [5, 10]   # search range for Optuna
+  n_segments_default: 7       # used if Optuna is skipped
+  algorithm: "kmeans"         # kmeans | dbscan | hdbscan
+  random_seed: 42
+  # Feature scaling
+  scaler: "standard"          # standard | minmax | robust
+  # t-SNE / UMAP for visualization
+  reduce_dims: "umap"         # umap | tsne
+
+recommendation:
+  n_plans: 3                  # number of plans to recommend per subscriber
+  # Available plan catalog
+  plans:
+    - id: "unlimited_rush"
+      name: "Unlimited Rush"
+      description: "Unlimited data with priority during peak hours"
+      monthly_price: 85
+      tags: ["unlimited", "priority", "commuter"]
+    - id: "home_pro"
+      name: "Home Pro Broadband"
+      description: "High-speed fixed-mobile bundle for WFH"
+      monthly_price: 70
+      tags: ["high_speed", "daytime", "work_from_home"]
+    - id: "nomad_global"
+      name: "Nomad Global"
+      description: "Multi-zone data + roaming bundle"
+      monthly_price: 95
+      tags: ["roaming", "multi_zone", "traveler"]
+    - id: "weekend_explorer"
+      name: "Weekend Explorer"
+      description: "Double data on weekends, standard weekdays"
+      monthly_price: 55
+      tags: ["weekend", "leisure", "explorer"]
+    - id: "social_unlimited"
+      name: "Social Unlimited"
+      description: "Unlimited social media + streaming apps"
+      monthly_price: 45
+      tags: ["social", "streaming", "youth"]
+    - id: "voice_classic"
+      name: "Voice Classic"
+      description: "1000 minutes voice + 5GB data"
+      monthly_price: 35
+      tags: ["voice", "senior", "simple"]
+    - id: "young_pro"
+      name: "Young Professional"
+      description: "20GB data + streaming perks + business apps"
+      monthly_price: 60
+      tags: ["balanced", "streaming", "professional"]
+    - id: "data_boost"
+      name: "Data Boost 50GB"
+      description: "50GB high-speed data, throttled after"
+      monthly_price: 50
+      tags: ["data_heavy", "budget", "flexible"]
+
+mlflow:
+  tracking_uri:           "http://localhost:5000"
+  experiment_name:        "geo_customer_segmentation"
+  registered_model_name:  "geo_segmentation"
+
+api:
+  host:          "0.0.0.0"
+  port:          8000
+  model_stage:   "Production"
+
+monitoring:
+  # Segment drift threshold — alert if >X% of subscribers change segment
+  drift_threshold_pct: 15.0
+  # Minimum silhouette score to auto-promote model
+  min_silhouette_score: 0.30
