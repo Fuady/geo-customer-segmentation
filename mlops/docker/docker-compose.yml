@@ -1,0 +1,63 @@
+version: "3.9"
+
+# ─────────────────────────────────────────────────────────────
+# Geo Customer Segmentation — Full Stack
+#   - api        : FastAPI segmentation service  → :8000
+#   - dashboard  : Streamlit dashboard           → :8501
+#   - mlflow     : MLflow tracking server        → :5000
+#
+# Usage:
+#   cd mlops/docker
+#   docker-compose up --build
+# ─────────────────────────────────────────────────────────────
+
+services:
+
+  mlflow:
+    image: python:3.10-slim
+    command: >
+      bash -c "pip install mlflow==2.12.2 --quiet &&
+               mlflow server
+               --backend-store-uri sqlite:///mlflow.db
+               --default-artifact-root /mlruns
+               --host 0.0.0.0 --port 5000"
+    ports:
+      - "5000:5000"
+    volumes:
+      - mlflow_data:/mlruns
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ../..
+      dockerfile: mlops/docker/Dockerfile.api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../../data:/app/data
+      - ../../configs:/app/configs
+    environment:
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+    depends_on:
+      - mlflow
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      retries: 3
+
+  dashboard:
+    build:
+      context: ../..
+      dockerfile: mlops/docker/Dockerfile.dashboard
+    ports:
+      - "8501:8501"
+    volumes:
+      - ../../data:/app/data
+      - ../../configs:/app/configs
+    depends_on:
+      - api
+    restart: unless-stopped
+
+volumes:
+  mlflow_data:
